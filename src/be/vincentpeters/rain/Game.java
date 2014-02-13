@@ -7,7 +7,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+
 import javax.swing.JFrame;
+
 import be.vincentpeters.rain.graphics.Screen;
 
 public class Game extends Canvas implements Runnable
@@ -18,6 +20,8 @@ public class Game extends Canvas implements Runnable
 	//calculate height to be 16/9 aspect ratio
 	public static int height = width / 16 * 9;
 	public static int scale = 3;
+	
+	public static String title = "Rain";
 
 	private Thread thread;
 	private boolean running = false;
@@ -85,20 +89,37 @@ public class Game extends Canvas implements Runnable
 		// Nanoseconds conversion divided by the max frames per second you want
 		// 1000000000 equals 1 second in nanoseconds
 		final double ns = 1000000000.0 / 60.0;
+		long timer = System.currentTimeMillis();		
 		double delta = 0;
+		int frames = 0;
+		int updates = 0;
 		while (running) {
 			long now = System.nanoTime();
 			// get the difference between two nanoseconds
 			delta += (now-lastTime) / ns;
+			//reset the time variable to now
+			lastTime = now;
 			//when delta exceeds 1, do a logic tick
-			// this will only be done 60 times per second
+			// this will only be done 60 times per second			
 			while(delta >= 1)
 			{
 				tick(); // game logic loop - fixed in time
+				updates++;
 				delta --;
 			}
-			
 			render(); //render loop - unlimited
+			frames++;
+			//do time minus the time set in beginning of loop,
+			// if larger then 1000 milliseconds (1 second) add that second to timer 
+			// and reset counters
+			if(System.currentTimeMillis() - timer > 1000)
+			{
+				timer += 1000;
+				System.out.println(updates + " ups, " + frames + " fps");
+				frame.setTitle( title + "   " + updates + " ups, " + frames + " fps" );
+				frames = 0;
+				updates = 0;
+			}
 		}
 	}
 
@@ -155,7 +176,7 @@ public class Game extends Canvas implements Runnable
 	{
 		Game game = new Game();
 		game.frame.setResizable( false );
-		game.frame.setTitle( "Rain" );
+		game.frame.setTitle( Game.title );
 		game.frame.add( game );
 		//sets the size of the frame ( done in constructor with preferred size )
 		game.frame.pack();
